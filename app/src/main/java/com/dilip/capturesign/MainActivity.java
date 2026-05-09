@@ -1,44 +1,54 @@
 package com.dilip.capturesign;
 
-import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends Activity {
+import com.dilip.capturesign.databinding.ActivityMainBinding;
+
+import java.io.File;
+
+public class MainActivity extends AppCompatActivity {
     public static final int SIGNATURE_ACTIVITY = 1;
+    private ActivityMainBinding binding;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Button getSignature = (Button) findViewById(R.id.signature);
-        getSignature.setOnClickListener(new View.OnClickListener() {
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        
+        binding.btnGetSignature.setOnClickListener(new View.OnClickListener() {
+            @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, CaptureSignature.class);
                 startActivityForResult(intent, SIGNATURE_ACTIVITY);
             }
         });
     }
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        switch(requestCode) {
-            case SIGNATURE_ACTIVITY:
-                if (resultCode == RESULT_OK) {
-
-                    Bundle bundle = data.getExtras();
-                    String status  = bundle.getString("status");
-                    if(status.equalsIgnoreCase("done")){
-                        Toast toast = Toast.makeText(this, "Signature capture successful!", Toast.LENGTH_SHORT);
-                        toast.setGravity(Gravity.TOP, 105, 50);
-                        toast.show();
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == SIGNATURE_ACTIVITY && resultCode == RESULT_OK && data != null) {
+            String status = data.getStringExtra("status");
+            if ("done".equalsIgnoreCase(status)) {
+                String path = data.getStringExtra("path");
+                if (path != null) {
+                    File imgFile = new File(path);
+                    if (imgFile.exists()) {
+                        Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                        binding.signaturePreview.setImageBitmap(myBitmap);
                     }
                 }
-                break;
+                Toast.makeText(this, getString(R.string.msg_signature_saved), Toast.LENGTH_SHORT).show();
+            }
         }
-
     }
 }
