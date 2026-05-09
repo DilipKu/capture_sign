@@ -23,7 +23,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/btn_cancel" />
+                android:text="@string/btn_cancel"
+                android:textColor="@color/white"
+                app:strokeColor="@color/white" />
 
             <Button
                 android:id="@+id/clear"
@@ -31,7 +33,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/btn_clear" />
+                android:text="@string/btn_clear"
+                android:textColor="@color/white"
+                app:strokeColor="@color/white" />
 
             <Button
                 android:id="@+id/undo"
@@ -39,7 +43,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/btn_undo" />
+                android:text="@string/btn_undo"
+                android:textColor="@color/white"
+                app:strokeColor="@color/white" />
 
             <Button
                 android:id="@+id/getsign"
@@ -47,6 +53,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:textColor="@color/white"
                 android:text="@string/btn_save" />
 
         </com.google.android.material.button.MaterialButtonToggleGroup>
