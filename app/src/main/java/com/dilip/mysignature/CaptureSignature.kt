@@ -160,6 +160,9 @@ fun SignatureCaptureScreen(
     val drawScopeSizeState = remember { mutableStateOf(IntSize.Zero) }
 
     Scaffold(
+        modifier = Modifier
+            .statusBarsPadding()
+            .navigationBarsPadding(),
         topBar = {
             TopAppBar(
                 title = { Text("Capture Signature") }

@@ -28,6 +28,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -47,13 +50,33 @@ class MainActivity : ComponentActivity() {
         loadSignatures()
         setContent {
             MaterialTheme {
-                MainScreen(
-                    signatureUris = signatures,
-                    onCaptureClick = {
-                        val intent = Intent(this, CaptureSignature::class.java)
-                        captureLauncher.launch(intent)
+                val navController = rememberNavController()
+                
+                NavHost(navController = navController, startDestination = "splash") {
+                    composable("splash") {
+                        SplashScreen(onNavigateToLogin = {
+                            navController.navigate("login") {
+                                popUpTo("splash") { inclusive = true }
+                            }
+                        })
                     }
-                )
+                    composable("login") {
+                        LoginScreen(onLoginSuccess = {
+                            navController.navigate("main") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        })
+                    }
+                    composable("main") {
+                        MainScreen(
+                            signatureUris = signatures,
+                            onCaptureClick = {
+                                val intent = Intent(this@MainActivity, CaptureSignature::class.java)
+                                captureLauncher.launch(intent)
+                            }
+                        )
+                    }
+                }
             }
         }
     }
@@ -66,7 +89,6 @@ class MainActivity : ComponentActivity() {
             MediaStore.Images.Media.RELATIVE_PATH
         )
         
-        // Query for images in the Pictures/Signatures folder
         val selection = "${MediaStore.Images.Media.RELATIVE_PATH} LIKE ?"
         val selectionArgs = arrayOf("%Pictures/Signatures%")
         val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
@@ -89,7 +111,6 @@ class MainActivity : ComponentActivity() {
             }
         }
         
-        // Also check legacy path for older Android versions
         val legacyFolder = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES), "Signatures")
         if (legacyFolder.exists()) {
             legacyFolder.listFiles()?.forEach { file ->
@@ -107,6 +128,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(signatureUris: List<Uri>, onCaptureClick: () -> Unit) {
     Scaffold(
+        modifier = Modifier
+            .statusBarsPadding()
+            .navigationBarsPadding(),
         topBar = {
             TopAppBar(title = { Text("Signature List") })
         },
