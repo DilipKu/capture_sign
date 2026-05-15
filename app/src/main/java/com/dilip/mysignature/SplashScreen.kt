@@ -21,6 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+
 @Composable
 fun SplashScreen(onNavigateToLogin: () -> Unit) {
     val alpha = remember { Animatable(0f) }
@@ -51,13 +54,12 @@ fun SplashScreen(onNavigateToLogin: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.alpha(alpha.value)
         ) {
-            Icon(
-                imageVector = Icons.Default.Edit,
+            Image(
+                painter = painterResource(id = R.drawable.ic_app_logo),
                 contentDescription = "Logo",
-                tint = Color(0xFF869D89),
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(150.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = "My Signature",
                 color = Color.White,

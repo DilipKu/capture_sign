@@ -10,9 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +24,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import kotlin.contracts.contract
+import androidx.compose.ui.res.painterResource
+
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Preview(showBackground = true)
 @Composable
@@ -41,8 +42,12 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
     
     var email by remember { mutableStateOf("maildilip45@gmail.com") }
     var password by remember { mutableStateOf("dilip45@#") }
+    var name by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(value = false) }
     var isLoginTab by remember { mutableStateOf(true) }
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -83,6 +88,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 modifier = Modifier
                     .padding(24.dp)
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
                 // Login/Register Toggle
                 Row(
@@ -128,6 +134,23 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Input Fields
+                if (!isLoginTab) {
+                    CustomInputField(
+                        label = "Full Name",
+                        value = name,
+                        onValueChange = { name = it },
+                        icon = Icons.Default.Person
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    CustomInputField(
+                        label = "Phone Number",
+                        value = phone,
+                        onValueChange = { phone = it },
+                        icon = Icons.Default.Phone
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
                 CustomInputField(
                     label = "Email Address",
                     value = email,
@@ -148,46 +171,60 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Remember Me & Forgot Password
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = rememberMe,
-                            onCheckedChange = { rememberMe = it },
-                            colors = CheckboxDefaults.colors(checkedColor = sageGreen)
-                        )
-                        Text(text = "Remember me", fontSize = 14.sp, color = Color.Black)
-                    }
-                    val context = LocalContext.current
-                    val forgotText = "Forgot Password?"
-                    Text(
-                        text = forgotText,
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.clickable {
-                                    Toast.makeText(context,
-                                        "$forgotText is in progress",
-                                        Toast.LENGTH_SHORT).show()
-
+                if (isLoginTab) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = rememberMe,
+                                onCheckedChange = { rememberMe = it },
+                                colors = CheckboxDefaults.colors(checkedColor = sageGreen)
+                            )
+                            Text(text = "Remember me", fontSize = 14.sp, color = Color.Black)
                         }
-                    )
+                        val forgotText = "Forgot Password?"
+                        Text(
+                            text = forgotText,
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.clickable {
+                                Toast.makeText(
+                                    context,
+                                    "$forgotText is in progress",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+
+                            }
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(if (isLoginTab) 32.dp else 16.dp))
 
-                // Login Button
+                // Action Button (Login or Register)
                 Button(
-                    onClick = { onLoginSuccess() },
+                    onClick = { 
+                        if (isLoginTab) {
+                            onLoginSuccess() 
+                        } else {
+                            Toast.makeText(context, "Registration logic later", Toast.LENGTH_SHORT).show()
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(backgroundColor = sageGreen)
                 ) {
-                    Text(text = "Login", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        text = if (isLoginTab) "Login" else "Register", 
+                        color = Color.White, 
+                        fontWeight = FontWeight.Bold, 
+                        fontSize = 16.sp
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -216,12 +253,12 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 ) {
                     SocialButton(
                         text = "Google",
-                        icon = Icons.Default.Email, // Placeholder icon
+                        iconRes = R.drawable.ic_google,
                         modifier = Modifier.weight(1f)
                     )
                     SocialButton(
                         text = "Facebook",
-                        icon = Icons.Default.Email, // Placeholder icon
+                        iconRes = R.drawable.ic_facebook,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -283,7 +320,7 @@ fun CustomInputField(
 }
 
 @Composable
-fun SocialButton(text: String, icon: ImageVector, modifier: Modifier = Modifier) {
+fun SocialButton(text: String, iconRes: Int, modifier: Modifier = Modifier) {
 
     val context = LocalContext.current
     OutlinedButton(
@@ -299,12 +336,11 @@ fun SocialButton(text: String, icon: ImageVector, modifier: Modifier = Modifier)
         border = BorderStroke(1.dp, Color.LightGray)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Icon placeholder - ideally use actual Google/Facebook icons
             Icon(
-                imageVector = icon,
+                painter = painterResource(id = iconRes),
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = if (text == "Facebook") Color(0xFF1877F2) else Color.Unspecified
+                modifier = Modifier.size(24.dp),
+                tint = Color.Unspecified
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = text, color = Color.Black, fontWeight = FontWeight.Bold)

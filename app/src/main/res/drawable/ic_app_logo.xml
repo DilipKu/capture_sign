@@ -1,0 +1,49 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Outer rounded box -->
+    <path
+        android:fillColor="#EBB02D"
+        android:pathData="M15,0 L85,0 A15,15 0 0 1 100,15 L100,85 A15,15 0 0 1 85,100 L15,100 A15,15 0 0 1 0,85 L0,15 A15,15 0 0 1 15,0 Z" />
+
+    <!-- Shadow (simplified) -->
+    <path
+        android:fillColor="#000000"
+        android:fillAlpha="0.1"
+        android:pathData="M50,50 L100,100 L0,100 Z" />
+
+    <!-- Pen Nib -->
+    <group
+        android:pivotX="50"
+        android:pivotY="50"
+        android:rotation="-45">
+
+        <!-- Nib Base -->
+        <path
+            android:fillColor="#4A4A4A"
+            android:pathData="M40,30 L60,30 L65,40 L35,40 Z" />
+
+        <!-- Nib Body -->
+        <path
+            android:fillColor="#4A4A4A"
+            android:pathData="M35,40 L65,40 L60,80 L50,95 L40,80 Z" />
+
+        <!-- Nib Slit -->
+        <path
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1"
+            android:pathData="M50,45 L50,75" />
+
+        <!-- Nib Hole -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M47,60 L53,60 L53,63 L47,63 Z" />
+
+        <!-- Golden band on nib -->
+        <path
+            android:fillColor="#EBB02D"
+            android:pathData="M37,35 L63,35 L63,38 L37,38 Z" />
+    </group>
+</vector>
