@@ -1,213 +1,75 @@
 package com.dilip.mysignature
 
-import android.content.ContentUris
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.activity.ComponentActivity
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import java.io.File
+import com.dilip.mysignature.data.repository.SignatureRepository
+import com.dilip.mysignature.navigation.AppNavGraph
+import com.dilip.mysignature.navigation.Screen
+import com.dilip.mysignature.ui.components.BottomNavigationBar
+import com.dilip.mysignature.ui.viewmodels.SignatureViewModel
+import com.dilip.mysignature.ui.viewmodels.ViewModelFactory
 
 class MainActivity : ComponentActivity() {
-    private val signatures = mutableStateListOf<Uri>()
 
     private val captureLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            loadSignatures()
+            // Re-trigger load via VM by recreating or using a trigger
+            recreate()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        loadSignatures()
         setContent {
             MaterialTheme {
                 val navController = rememberNavController()
-                
-                NavHost(navController = navController, startDestination = "splash") {
-                    composable("splash") {
-                        SplashScreen(onNavigateToLogin = {
-                            navController.navigate("login") {
-                                popUpTo("splash") { inclusive = true }
-                            }
-                        })
-                    }
-                    composable("login") {
-                        LoginScreen(onLoginSuccess = {
-                            navController.navigate("main") {
-                                popUpTo("login") { inclusive = true }
-                            }
-                        })
-                    }
-                    composable("main") {
-                        MainScreen(
-                            signatureUris = signatures,
-                            onCaptureClick = {
-                                val intent = Intent(this@MainActivity, CaptureSignature::class.java)
-                                captureLauncher.launch(intent)
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
 
-    private fun loadSignatures() {
-        signatures.clear()
-        val projection = arrayOf(
-            MediaStore.Images.Media._ID,
-            MediaStore.Images.Media.DISPLAY_NAME,
-            MediaStore.Images.Media.RELATIVE_PATH
-        )
-        
-        val selection = "${MediaStore.Images.Media.RELATIVE_PATH} LIKE ?"
-        val selectionArgs = arrayOf("%Pictures/Signatures%")
-        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
-
-        contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            selection,
-            selectionArgs,
-            sortOrder
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idColumn)
-                val contentUri = ContentUris.withAppendedId(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    id
+                // MVVM Injection
+                val repository = remember { SignatureRepository(contentResolver) }
+                val viewModel: SignatureViewModel = viewModel(
+                    factory = ViewModelFactory(repository)
                 )
-                signatures.add(contentUri)
-            }
-        }
-        
-        val legacyFolder = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES), "Signatures")
-        if (legacyFolder.exists()) {
-            legacyFolder.listFiles()?.forEach { file ->
-                if (file.extension == "png") {
-                    val uri = Uri.fromFile(file)
-                    if (!signatures.contains(uri)) {
-                        signatures.add(uri)
-                    }
+                
+                LaunchedEffect(Unit) {
+                    viewModel.loadSignatures()
                 }
-            }
-        }
-    }
-}
 
-@Composable
-fun MainScreen(signatureUris: List<Uri>, onCaptureClick: () -> Unit) {
-    Scaffold(
-        modifier = Modifier
-            .statusBarsPadding()
-            .navigationBarsPadding(),
-        topBar = {
-            TopAppBar(title = { Text("Signature List") })
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onCaptureClick) {
-                Text("+", fontSize = 24.sp, modifier = Modifier.padding(horizontal = 16.dp))
-            }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Captured Signatures",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+                // Define routes that should NOT show bottom navigation
+                val authRoutes = listOf(Screen.Splash.route, Screen.Login.route)
+                val showBottomNav = currentRoute !in authRoutes
 
-            if (signatureUris.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No signatures captured", color = Color.Gray)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(signatureUris) { uri ->
-                        SignatureItem(uri)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SignatureItem(uri: Uri) {
-    val context = LocalContext.current
-    Card(
-        elevation = 4.dp,
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp))
-                    .border(1.dp, Color.LightGray, RoundedCornerShape(4.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                val bitmap = remember(uri) {
-                    try {
-                        context.contentResolver.openInputStream(uri)?.use {
-                            BitmapFactory.decodeStream(it)
+                Scaffold(
+                    bottomBar = {
+                        if (showBottomNav) {
+                            BottomNavigationBar(navController = navController)
                         }
-                    } catch (e: Exception) {
-                        null
                     }
-                }
-
-                if (bitmap != null) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Signature Preview",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
+                ) { innerPadding ->
+                    AppNavGraph(
+                        navController = navController,
+                        paddingValues = innerPadding,
+                        signatures = viewModel.signatures.map { it.uri },
+                        onCaptureClick = {
+                            val intent = Intent(this@MainActivity, CaptureSignature::class.java)
+                            captureLauncher.launch(intent)
+                        }
                     )
-                } else {
-                    Text("Error loading signature", color = Color.Red)
                 }
             }
         }
