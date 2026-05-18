@@ -11,10 +11,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.dilip.mysignature.ui.screens.*
 
+import com.dilip.mysignature.ui.viewmodels.FirmViewModel
+import com.dilip.mysignature.ui.viewmodels.SignatureViewModel
+
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
     paddingValues: PaddingValues,
+    firmViewModel: FirmViewModel,
     signatures: List<Uri>,
     onCaptureClick: () -> Unit
 ) {
@@ -48,6 +52,9 @@ fun AppNavGraph(
         }
         composable(Screen.Profile.route) {
             ProfileScreen()
+        }
+        composable(Screen.FirmUsers.route) {
+            FirmUsersScreen(viewModel = firmViewModel)
         }
         composable(Screen.Tools.route) {
             ToolsScreen(

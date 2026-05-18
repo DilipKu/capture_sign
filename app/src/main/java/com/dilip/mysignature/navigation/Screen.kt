@@ -2,6 +2,7 @@ package com.dilip.mysignature.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
@@ -17,12 +18,13 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector?
     object Signatures : Screen("signatures", "Signatures", Icons.Default.List)
     object Profile : Screen("profile", "Profile", Icons.Default.Person)
     object Tools : Screen("tools", "Tools", Icons.Default.Build)
+    object FirmUsers : Screen("firm_users", "Firms", Icons.Default.Business)
     object NewDev : Screen("new_dev", "New Development")
 }
 
 val bottomNavItems = listOf(
     Screen.Home,
     Screen.Signatures,
-    Screen.Profile,
+    Screen.FirmUsers,
     Screen.Tools
 )

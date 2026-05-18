@@ -13,10 +13,13 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.dilip.mysignature.data.db.AppDatabase
+import com.dilip.mysignature.data.repository.FirmRepository
 import com.dilip.mysignature.data.repository.SignatureRepository
 import com.dilip.mysignature.navigation.AppNavGraph
 import com.dilip.mysignature.navigation.Screen
 import com.dilip.mysignature.ui.components.BottomNavigationBar
+import com.dilip.mysignature.ui.viewmodels.FirmViewModel
 import com.dilip.mysignature.ui.viewmodels.SignatureViewModel
 import com.dilip.mysignature.ui.viewmodels.ViewModelFactory
 
@@ -26,7 +29,6 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            // Re-trigger load via VM by recreating or using a trigger
             recreate()
         }
     }
@@ -41,13 +43,19 @@ class MainActivity : ComponentActivity() {
                 val currentRoute = navBackStackEntry?.destination?.route
 
                 // MVVM Injection
-                val repository = remember { SignatureRepository(contentResolver) }
-                val viewModel: SignatureViewModel = viewModel(
-                    factory = ViewModelFactory(repository)
+                val database = remember { AppDatabase.getDatabase(applicationContext) }
+                val signatureRepository = remember { SignatureRepository(contentResolver) }
+                val firmRepository = remember { FirmRepository(database.firmUserDao()) }
+                
+                val signatureViewModel: SignatureViewModel = viewModel(
+                    factory = ViewModelFactory(signatureRepository)
+                )
+                val firmViewModel: FirmViewModel = viewModel(
+                    factory = ViewModelFactory(firmRepository)
                 )
                 
                 LaunchedEffect(Unit) {
-                    viewModel.loadSignatures()
+                    signatureViewModel.loadSignatures()
                 }
 
                 // Define routes that should NOT show bottom navigation
@@ -64,7 +72,8 @@ class MainActivity : ComponentActivity() {
                     AppNavGraph(
                         navController = navController,
                         paddingValues = innerPadding,
-                        signatures = viewModel.signatures.map { it.uri },
+                        firmViewModel = firmViewModel,
+                        signatures = signatureViewModel.signatures.map { it.uri },
                         onCaptureClick = {
                             val intent = Intent(this@MainActivity, CaptureSignature::class.java)
                             captureLauncher.launch(intent)
