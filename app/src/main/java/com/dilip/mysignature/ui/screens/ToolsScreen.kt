@@ -1,5 +1,6 @@
 package com.dilip.mysignature.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,8 +15,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -27,7 +28,11 @@ data class ToolOption(
 )
 
 @Composable
-fun ToolsScreen(onCaptureClick: () -> Unit, onNewDevClick: () -> Unit) {
+fun ToolsScreen(
+    onCaptureClick: () -> Unit,
+    onNewDevClick: () -> Unit
+) {
+    val context = LocalContext.current
     val tools = listOf(
         ToolOption("New Dev", Icons.Default.DeveloperMode),
         ToolOption("Signature", Icons.Default.Edit),
@@ -38,7 +43,6 @@ fun ToolsScreen(onCaptureClick: () -> Unit, onNewDevClick: () -> Unit) {
         ToolOption("Info", Icons.Default.Info),
         ToolOption("Bluetooth", Icons.Default.Bluetooth),
         ToolOption("Wi-Fi", Icons.Default.Wifi)
-
     )
 
     Scaffold(
@@ -64,6 +68,9 @@ fun ToolsScreen(onCaptureClick: () -> Unit, onNewDevClick: () -> Unit) {
                     when (tool.title) {
                         "Signature" -> onCaptureClick()
                         "New Dev" -> onNewDevClick()
+                        else -> {
+                            Toast.makeText(context, "${tool.title}: Work in progress", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }

@@ -1,6 +1,5 @@
 package com.dilip.mysignature.navigation
 
-import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -12,7 +11,6 @@ import androidx.navigation.compose.composable
 import com.dilip.mysignature.ui.screens.*
 
 import com.dilip.mysignature.ui.viewmodels.FirmViewModel
-import com.dilip.mysignature.ui.viewmodels.SignatureViewModel
 
 @Composable
 fun AppNavGraph(
